@@ -1,0 +1,96 @@
+INSTRUCCIONES OPERATIVAS - TIPOS DE ACCION
+Fecha: 2026-07-10
+Proyecto: odoo-woocommerce-integrator
+
+Este documento describe cada tipo de accion operativa detectada en history,
+y como se ejecuta en la practica (comando directo o por script).
+
+1) BUILD DE IMAGEN
+Cuando: cambios de codigo/dependencias.
+Tipo: comando directo.
+Comando:
+  docker build -t odoo-woocommerce-integrator .
+
+2) ARRANQUE/PARADA DE SERVICIO
+Cuando: despliegue, reinicio o mantenimiento.
+Tipo: comando directo.
+Comandos:
+  docker compose up -d
+  docker compose down
+Con nueva imagen:
+  docker compose up -d --force-recreate
+
+3) VERIFICACION DE ESTADO
+Cuando: despues de deploy o incidente.
+Tipo: comando directo.
+Comandos:
+  docker ps
+  docker logs -f odoo-woocommerce-integrator
+
+4) HEALTH CHECKS
+Cuando: validar conectividad app/odoo/woocommerce.
+Tipo: comando directo.
+Comandos:
+  curl http://localhost:8088/health
+  curl http://localhost:8088/health/odoo
+  curl http://localhost:8088/health/woocommerce
+
+5) SYNC DE PRODUCTOS E INVENTARIO
+Cuando: cambios de catalogo, precio o stock.
+Tipo: comando directo.
+Comandos:
+  curl -X POST "http://localhost:8088/sync/products?limit=20"
+  curl -X POST "http://localhost:8088/sync/inventory?limit=500"
+Nota:
+- sync/inventory: actualizacion segura de precio/stock.
+- sync/products: actualiza tambien contenido.
+
+6) SYNC DE PEDIDOS
+Cuando: reconciliar pedidos processing/completed.
+Tipo: comando directo.
+Comando:
+  curl -X POST "http://localhost:8088/sync/orders?limit=50"
+
+7) PRUEBA DE WEBHOOK
+Cuando: validar recepcion de eventos y autorizacion.
+Tipo: comando directo.
+Comando ejemplo:
+  curl -X POST http://localhost:8088/webhooks/woocommerce/order -H "Content-Type: application/json" -H "X-Integrator-Secret: TU_SECRET" -d '{"id":999,"status":"pending","line_items":[]}'
+Importante:
+- No usar secretos reales en comandos que queden en history.
+
+8) BACKUP
+Cuando: respaldo periodico o antes de tareas riesgosas.
+Tipo recomendado: por script.
+Script:
+  sh scripts/backup.sh
+Verificacion:
+  tail -n 50 logs/backup.log
+Tipo alternativo: comando manual (solo administracion avanzada).
+
+9) GESTION DE VOLUMENES/RECUPERACION
+Cuando: incidentes, restauraciones, migraciones.
+Tipo: comando directo (con cuidado).
+Comandos de inspeccion:
+  docker volume ls
+  docker inspect <container_id>
+Advertencia:
+- No ejecutar borrados de volumen sin backup verificado.
+
+10) CAMBIOS DE NGINX
+Cuando: proxy, certificados, rutas.
+Tipo: comando directo.
+Comandos:
+  sudo vi /etc/nginx/conf.d/sovai.conf
+  sudo systemctl reload nginx
+Si falla:
+  sudo systemctl restart nginx
+  journalctl -xeu nginx.service
+
+11) REINICIO DE SERVICIOS BASE
+Cuando: falla de runtime en docker/sistema.
+Tipo: comando directo.
+Comandos:
+  sudo systemctl restart docker
+Ultimo recurso:
+  sudo reboot

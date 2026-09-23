@@ -1,0 +1,1001 @@
+[root@ip-172-31-7-238 integrador]# history
+    1  vi integrador/app/settings.py
+    2  mv integrador/app/odoo_client.py integrador/app/odoo_client.py.bk
+    3  vi integrador/app/odoo_client.py
+    4  cd integrador/
+    5  ls
+    6  docker build -t odoo-woocommerce-integrator .
+    7  docker compose dwon
+    8  docker compose down
+    9  docker compose up
+   10  curl -X POST 'http://localhost:8088/sync/products?limit=20'
+   11  last
+   12  who
+   13  systemctl stop nginx
+   14  systemctl status nginx
+   15  docker ps
+   16  ls
+   17  cd scripts/
+   18  ls
+   19  cp backup.sh backup.sh.01
+   20  vi backup.sh
+   21  export RESTIC_REPOSITORY=s3://amzn-s3-sovai/backups/
+   22  export RESTIC_PASSWORD='4Tpol3n'
+   23  aws configure
+   24  aws s3 list
+   25  aws list s3
+   26  aws s3
+   27  s3
+   28  aws s3
+   29  aws -list s3
+   30  ip a
+   31  retic init
+   32  restic init
+   33  restic init -o s3.unsafe-anonymous-auth=true
+   34  aws -help
+   35  aws help
+   36  export RESTIC_REPOSITORY=s3:s3.sa-east-1.amazonaws.com/amzn-s3-sovai/backups/
+   37  restic init -o s3.unsafe-anonymous-auth=true
+   38  aws sts get-caller-identity
+   39  aws s3 ls s3://amzn-s3-sovai
+   40  aws login
+   41  aws sts get-caller-identity
+   42  su - ec2-user
+   43  aws sts get-caller-identity
+   44  ls
+   45  vi backup.sh
+   46  rm backup.sh
+   47  cp backup.sh.01 backup.sh
+   48  vi backup.sh
+   49  cat backup.sh.01
+   50  vi backup.sh
+   51  ls
+   52  cd ..
+   53  ls
+   54  vi backup.sh
+   55  vi scripts/backup.sh
+   56  docker ps
+   57  du -h --max-depth 1
+   58  cd odoo/
+   59  ls -lha
+   60  du -h --max-depth 1
+   61  docker ps
+   62  vi docker-compose.yaml
+   63  docker compose down
+   64  ls -lha
+   65  cd ..
+   66  cd odoo/
+   67  docker compose up -d
+   68  ls -lha
+   69  du -h --max-depth 1
+   70  cd ..
+   71  sh scripts/backup.sh
+   72  vi scripts/backup.sh
+   73  sh scripts/backup.sh
+   74  tail logs/backup.log
+   75  vi logs/backup.log
+   76  cd odoo/
+   77  docker compose down
+   78  cat docker-compose.yaml
+   79  ls
+   80  cd ..
+   81  chmod -R 644 odoo/
+   82  cd odoo/
+   83  ls
+   84  cd postgres_data/
+   85  ls
+   86  ls -lha
+   87  cd ..
+   88  vi docker-compose.yaml
+   89  docker compose up
+   90  ls
+   91  cd config/
+   92  ls
+   93  ls -lha
+   94  getenforce
+   95  docker ps
+   96  cd wordpress/
+   97  ls
+   98  du -h --max-depth 1
+   99  cat docker-compose.yaml
+  100  cd ..
+  101  ls
+  102  cd odoo/
+  103  vi docker-compose.yaml
+  104  ls
+  105  cd postgres_data/
+  106  ls
+  107  ls -lha
+  108  find postgres_data
+  109  find / -R postgres_data
+  110  find / postgres_data
+  111  find help
+  112  find -help
+  113  docker ps
+  114  docker inspect f59774ff6d85
+  115  cd ..
+  116  cd ..
+  117  tail logs/backup.log
+  118  tail -n 50 logs/backup.log
+  119  cd /var/lib/docker/volumes
+  120  ls
+  121  ls -lha
+  122  rm -RF wordpress_db_data
+  123  rm -Rf wordpress_db_data
+  124  rm -Rf wordpress_wp_data/
+  125  ls
+  126  ls
+  127  cd odoo_odoo_data/
+  128  ls
+  129  cd _data/
+  130  ls
+  131  ls
+  132  cd ..
+  133  cd ..
+  134  cd odoo_postgres_data/
+  135  ls
+  136  ls
+  137  cd _data/
+  138  ls
+  139  ls -lha
+  140  cd ..
+  141  sudo cp -a _data/* /home/ec2-user/odoo/postgres_data/
+  142  ls
+  143  cd ..
+  144  ls
+  145  docker volume ls
+  146  cd odoo_odoo_data/
+  147  ls
+  148  cd _data/
+  149  ls
+  150  docker volume rm odoo_odoo_data  odoo_postgres_data  wordpress_db_data  wordpress_wp_data
+  151  cd ..
+  152  ls
+  153  pwd
+  154  cd /var/lib/docker/volumes/
+  155  ls
+  156  cd backups/restic/
+  157  ls
+  158  cd data/
+  159  ls
+  160  docker volume ls
+  161  docker ps
+  162  docker logs 2c9603a748ee
+  163  docker logs -f odoo-woocommerce-integrator
+  164  cd ..
+  165  cd ..
+  166  cd ..
+  167  cd odoo/
+  168  ls
+  169  vi config/odoo.conf
+  170  vi docker-compose.yaml
+  171  cd addons/
+  172  ls
+  173  cd product-attribute/
+  174  git ls
+  175  git --help
+  176  git checkuot
+  177  git checkout
+  178  ls
+  179  cat checklog-odoo.cfg
+  180  cat requirements.txt
+  181  cd ..
+  182  git clone --depth 1 --branch 18.0 https://github.com/OCA/brand.git
+  183  ls
+  184  cd brand/
+  185  ls
+  186  cd ..
+  187  chmod -R 777 brand/
+  188  cd ..
+  189  docker ps
+  190  systemctl status docker
+  191  systemctl restart docker
+  192  systemctl status docker
+  193  docker ps
+  194  tail -n 100 logs/backup.log
+  195  lsblk
+  196  sh scripts/backup.sh
+  197  reboot
+  198  docker ps
+  199  ls
+  200  cd odoo/
+  201  docker compose up -d
+  202  cd ..
+  203  cd wordpress/
+  204  docker compose up -d
+  205  cd ..
+  206  cd integrador/
+  207  docker compose up -d
+  208  dokcer ps
+  209  docker ps
+  210  sh scripts/backup.sh
+  211  restic unlock
+  212  restic unlock -r backups/restic/
+  213  cat scripts/backup.sh
+  214  restic unlock -r backups/restic/
+  215  sh scripts/backup.sh
+  216  vi /etc/nginx/conf.d/sovai.conf
+  217  systemctl restart nginx
+  218  vi odoo/config/odoo.conf
+  219  vi /etc/nginx/conf.d/sovai.conf
+  220  systemctl restart nginx
+  221  vi /etc/nginx/conf.d/sovai.conf
+  222  systemctl restart nginx
+  223  vi /etc/nginx/conf.d/sovai.conf
+  224  systemctl restart nginx
+  225  vi /etc/nginx/conf.d/sovai.conf
+  226  systemctl restart nginx
+  227  vi /etc/nginx/conf.d/sovai.conf
+  228  systemctl restart nginx
+  229  systemctl stop nginx
+  230  vi /etc/nginx/conf.d/sovai.conf
+  231  fg 1
+  232  ls -lha /etc/nginx/conf.d/
+  233  cd /etc/nginx/conf.d/
+  234  fg .sovai.conf.swp
+  235  vi .sovai.conf.swp
+  236  vi -r sovai.conf
+  237  ls -lha
+  238  vi sovai.conf
+  239  ls -lha
+  240  rm .sovai.conf.swp
+  241  ls -lha
+  242  vi sovai.conf
+  243  cd /home/ec2-user/
+  244  sh scripts/backup.sh
+  245  cd odoo/addons/
+  246  ls
+  247  cd brand/
+  248  git checkout
+  249  ls -lha
+  250  cd ..
+  251  cd ..
+  252  cat config/odoo.conf
+  253  cat docker-compose.yaml
+  254  docker ps
+  255  docker exec -it 133b4d12c03a bash
+  256  ls
+  257  docker compose down
+  258  docker compose up
+  259  cd addons/
+  260  ls
+  261  cd product-attribute/
+  262  ls
+  263  cat README.md
+  264  ls
+  265  cd product_abc_classification/
+  266  ls
+  267  cd ..
+  268  cd ..
+  269  cp product-attribute/* ..
+  270  cp product-attribute/* .
+  271  ls
+  272  cp -R product-attribute/* .
+  273  cp -Rf product-attribute/* .
+  274  cp -Ry product-attribute/* .
+  275  cp -Rf product-attribute/* .
+  276  ls
+  277  cp --help
+  278  cp -R -f product-attribute/* .
+  279  cd product-attribute/
+  280  ls
+  281  cp -R -f product-attribute/* ../
+  282  cp -R -f product-attribute/* ..
+  283  cp -R -f * ..
+  284  cp -R -F * ..
+  285  cp -R -f * ..
+  286  CD ..
+  287  cd ..
+  288  cd ..
+  289  docker compose down
+  290  cd addons/
+  291  ls
+  292  rm -Rf LICENSE README.md checklog-odoo.cfg  eslint.config.cjs nutritional_info pos_product_cost_security prettier.config.cjs requirements.txt test-requirements.txt
+  293  ls
+  294  cp -R -f product-attribute/* .
+  295  ls
+  296  cd ..
+  297  dokcer compose up
+  298  docker compose up
+  299  docker compose down
+  300  ls -l odoo_data/.local/share/Odoo/filestore/odoo
+  301  cd addons/
+  302  ls
+  303  cd ..
+  304  docker compose up
+  305  vi docker-compose.yaml
+  306  docker compose up
+  307  docker ps
+  308  cd integrador/
+  309  ls
+  310  ip a
+  311  df -h
+  312  yum history
+  313  last
+  314  dnf history
+  315  cd /tmp/
+  316  ls
+  317  cd /home/ec2-user/
+  318  ls -lha
+  319  rm -Rf .vscode-server/
+  320  ls -lha
+  321  cd integrador/
+  322  docker compose down
+  323  ls -lha
+  324  docker build -t odoo-woocommerce-integrator .
+  325  docker image ls
+  326  docker image prune
+  327  docker image ls
+  328  docker compose up
+  329  history
+  330  curl -X POST 'http://localhost:8088/sync/orders?limit=50'
+  331  vi /etc/nginx/conf.d/sovai.conf
+  332  sudo certbot --nginx -v
+  333  sudo certbot --nginx -v
+  334  vi /etc/nginx/conf.d/sovai.conf
+  335  systemctl restat nginx
+  336  systemctl restart nginx
+  337  vi /etc/nginx/conf.d/sovai.conf
+  338  journalctl -xeu nginx.service
+  339  vi /etc/nginx/conf.d/sovai.conf
+  340  netstat -punta
+  341  systemctl stop nginx
+  342  systemctl restart nginx
+  343  journalctl -xeu nginx.service
+  344  vi /etc/nginx/conf.d/sovai.conf
+  345  systemctl restart nginx
+  346  journalctl -xeu nginx.service
+  347  vi /etc/nginx/nginx.conf
+  348  systemctl stop nginx
+  349  netstat -punta
+  350  systemctl status nginx
+  351  reboot
+  352  netstat -punta
+  353  cat /etc/nginx/conf.d/sovai.conf
+  354  vi /etc/nginx/nginx.conf
+  355  vi /etc/nginx/conf.d/sovai.conf
+  356  systemctl reload nginx
+  357  docker ps
+  358  docker exec -it 06442b2cc020 bash
+  359  docker ps
+  360  docker exec -it 06442b2cc020 bash
+  361  cat /etc/nginx/conf.d/sovai.conf
+  362  curl -I http://127.0.0.1:8080
+  363  curl -X POST 'http://localhost:8088/sync/orders?limit=50'
+  364  docker exec -it 06442b2cc020 bash
+  365  docker ps
+  366  docker exec -it bec09523f7f4 bash
+  367  ls
+  368  cd wordpress/
+  369  lw
+  370  ls
+  371  cd wp_data/
+  372  ls
+  373  vi wp-config.php
+  374  cd ..
+  375  ls
+  376  docker compose down
+  377  docker compose up
+  378  cd ..
+  379  ls
+  380  docke ps
+  381  cd integrador/
+  382  docker compose down
+  383  docker compose up
+  384  docker ps
+  385  docker exec -it 926dd71eb412  printenv ODOO_DB
+  386  docker ps
+  387  docker logs 048180
+  388  cd wordpress/
+  389  cat docker-compose.yaml
+  390  curl 'http://localhost:8088/debug/odoo/sale-orders?limit=10'
+  391  curl -X POST   http://localhost:8088/webhooks/woocommerce/order   -H 'Content-Type: application/json'   -H 'X-Integrator-Secret: TU_WEBHOOK_SECRET'   -d '{"id":999,"status":"pending","line_items":[]}'
+  392  curl -X POST   http://localhost:8088/webhooks/woocommerce/order   -H 'Content-Type: application/json'   -H 'X-Integrator-Secret: '   -d '{"id":999,"status":"pending","line_items":[]}'
+  393  cat integrador/.env
+  394  curl -X POST   http://localhost:8088/webhooks/woocommerce/order   -H 'Content-Type: application/json'   -H 'X-Integrator-Secret: cs_ae7351b1ee1ae47108ae649683000597a2244503 '   -d '{"id":999,"status":"pending","line_items":[]}'
+  395  curl -X POST   http://localhost:8088/webhooks/woocommerce/order   -H 'Content-Type: application/json'   -H 'X-Integrator-Secret:cs_ae7351b1ee1ae47108ae649683000597a2244503'   -d '{"id":999,"status":"pending","line_items":[]}'
+  396  curl -X POST   http://localhost:8088/webhooks/woocommerce/order   -H 'Content-Type: application/json'   -H 'X-Integrator-Secret:cs_ae7351b1ee1ae47108ae649683000597a2244503'   -d '{"id":999,"status":"pending","line_items":[]}'
+  397  curl -X POST   http://localhost:8088/webhooks/woocommerce/order   -H 'Content-Type: application/json'   -H 'X-Integrator-Secret:cs_ae7351b1ee1ae47108ae649683000597a2244503'   -d '{"id":999,"status":"pending","line_items":[]}'
+  398  docker ps
+  399  cd integrador/
+  400  ls
+  401  docker compose down
+  402  mv app appbknew
+  403  ls
+  404  mv appbknew/ app
+  405  vi app/main.py
+  406  mv app/main.py  app/main.py.bk
+  407  vi app/main.py
+  408  vi app/main.py
+  409  cat docker-compose.yaml
+  410  mv app/odoo_client.py app/odoo_client.py.bk
+  411  vi app/odoo_client.py
+  412  docker build -t odoo-woocommerce-integrator .
+  413  docker ps
+  414  docker image ls
+  415  docker system prune
+  416  docker compose up
+  417  cd integrador/
+  418  docker compose down
+  419  docker compose up
+  420  docker compose up
+  421  vi docker-compose.yaml
+  422  docker compose up
+  423  vi .env
+  424  cat .env
+  425  docker compose up
+  426  vi .env
+  427  ls
+  428  mv app appbk2
+  429  ls
+  430  rm - Rf appBK/
+  431  rm -Rf appBK/
+  432  ls
+  433  docker build -t odoo-woocommerce-integrator .
+  434  docker compose up
+  435  docker build -t odoo-woocommerce-integrator .
+  436  docker compose up
+  437  docker pscurl -X POST   http://localhost:8088/webhooks/woocommerce/order   -H 'Content-Type: application/json'   -H 'X-Integrator-Secret:cs_ae7351b1ee1ae47108ae649683000597a2244503'   -d '{"id":999,"status":"pending","line_items":[]}'
+  438  curl -X POST   http://localhost:8088/webhooks/woocommerce/order   -H 'Content-Type: application/json'   -H 'X-Integrator-Secret:cs_ae7351b1ee1ae47108ae649683000597a2244503'   -d '{"id":999,"status":"pending","line_items":[]}'
+  439  curl -X POST   http://localhost:8088/webhooks/woocommerce/order   -H 'Content-Type: application/json'   -H 'X-Integrator-Secret:cs_ae7351b1ee1ae47108ae649683000597a2244503'   -d '{"id":999,"status":"pending","line_items":[]}'
+  440  cd integrador/
+  441  vi docker-compose.yaml
+  442  vi docker-compose.yaml
+  443  docker pscurl -X POST   http://localhost:8088/webhooks/woocommerce/order   -H 'Content-Type: application/json'   -H 'X-Integrator-Secret:cs_ae7351b1ee1ae47108ae649683000597a2244503'   -d '{"id":999,"status":"pending","line_items":[]}'
+  444  curl -X POST   http://localhost:8088/webhooks/woocommerce/order   -H 'Content-Type: application/json'   -H 'X-Integrator-Secret:cs_ae7351b1ee1ae47108ae649683000597a2244503'   -d '{"id":999,"status":"pending","line_items":[]}'
+  445  docker ps
+  446  docker exec -it 2a93bdc07fa3 bash
+  447  docker pscurl -X POST   http://localhost:8088/webhooks/woocommerce/order   -H 'Content-Type: application/json'   -H 'X-Integrator-Secret:XJ4_@zdvHQ<i36V(6D03#Vab@eqViJj4'   -d '{"id":999,"status":"pending","line_items":[]}'
+  448  curl -X POST   http://localhost:8088/webhooks/woocommerce/order   -H 'Content-Type: application/json'   -H 'X-Integrator-Secret:XJ4_@zdvHQ<i36V(6D03#Vab@eqViJj4'   -d '{"id":999,"status":"pending","line_items":[]}'
+  449  vi .env
+  450  docker exec -it odoo-woocommerce-integrator printenv ENABLE_BACKGROUND_SYNC
+  451  docker exec -it odoo-woocommerce-integrator printenv BACKGROUND_SYNC_INTERVAL_SECONDS
+  452  docker exec -it odoo-woocommerce-integrator printenv BACKGROUND_PRODUCTS_LIMIT
+  453  docker exec -it odoo-woocommerce-integrator printenv BACKGROUND_SYNC_ORDERS
+  454  docker exec -it odoo-woocommerce-integrator printenv BACKGROUND_SYNC_INVENTORY
+  455  docker ps
+  456  fdisk -l
+  457  df -h
+  458  fdisk -l
+  459  pvs
+  460  pvs
+  461  lvs
+  462  vgs
+  463  lsblk
+  464  fdisk -l
+  465  xfs_growfs
+  466  xfs_growfs /dev/nvme0n1p1
+  467  fdisk -l
+  468  which growpart
+  469  growpart /dev/nvme0n1p1
+  470  growpart /dev/nvme0n1p1 -R
+  471  growpart /dev/nvme0n1p1 - R
+  472  growpart /dev/nvme0n1 1
+  473  fdisk -l
+  474  xfs_growfs /
+  475  lsblk
+  476  exit
+  477  cd odoo/
+  478  ls
+  479  cd addons/
+  480  ls
+  481  ls
+  482  cd brand/
+  483  ls
+  484  cd ..
+  485  ls
+  486  pwd
+  487  cd ..
+  488  docker compose down
+  489  ls
+  490  mv addons/ addonsBK
+  491  ls -lha
+  492  mkdir addons
+  493  ls
+  494  ls -lha
+  495  chwon -R addons ec2-user
+  496  chown -R addons ec2-user
+  497  chown -R ec2-user addons
+  498  cp -R  addonsBK/brand/ addons/brand/
+  499  chown -R addons ec2-user
+  500  chown -R ec2-user addons
+  501  cd addons
+  502  ls
+  503  ls -lha
+  504  cd ..
+  505  docker compose up
+  506  docker compose up
+  507  vi docker-compose.yaml
+  508  docker compose run --rm odoo python3 /usr/bin/odoo -d odoo -u web --stop-after-init
+  509  docker compose up
+  510  ls
+  511  cd odoo_data/
+  512  ls
+  513  ls -lhs
+  514  ls -lha
+  515  cd .
+  516  cd .local/
+  517  ls -lha
+  518  cd ..
+  519  cd ..
+  520  cd config/
+  521  ls
+  522  ca to
+  523  cat odoo.conf
+  524  cd ..
+  525  ls
+  526  ca docker-compose.yaml
+  527  vi docker-compose.yaml
+  528  docker compose up
+  529  docker ps
+  530  ls
+  531  cd addons
+  532  ls
+  533  rm -Rf brand/
+  534  cd ..
+  535  cat config/odoo.conf
+  536  hisotry
+  537  cd odoo/
+  538  ls
+  539  cd addons/
+  540  ls
+  541  ls
+  542  ls -lha
+  543  docker ps
+  544  docker logs e47039571b8d
+  545  cd ..
+  546  cd ..
+  547  ls
+  548  tail logs/backup.log
+  549  tail -n 200 logs/backup.log
+  550  docker exec -it e47039571b8d bash
+  551  docker ps
+  552  docker exec -it odoo-postgres bash
+  553  docker ps
+  554  docker logs odoo
+  555  watch docker logs odoo
+  556  watch docker logs odoo
+  557  watch docker logs odoo
+  558  docker logs odoo
+  559  docker logs -h
+  560  docker logs -f odoo
+  561  docker logs -f odoo
+  562  docker exec -it odoo-postgres bash
+  563  lsof -i :8072
+  564  ls
+  565  cd odoo
+  566  ls
+  567  docke rps
+  568  docker ps
+  569  docker exec -it postgres psql
+  570  docker exec -it postgres bash
+  571  docker exec -it odoo-postgres bash
+  572  docker ps
+  573  docker ps
+  574  docker exec -it odoo bash
+  575  ls
+  576  ls
+  577  pwd
+  578  ls
+  579  ls
+  580  cd ..
+  581  ls
+  582  cd odoo
+  583  ls
+  584  vi config/odoo.conf
+  585  docker exec -it odoo bash
+  586  ls
+  587  cp web_responsive-18.0.1.0.6.zip odoo/addons
+  588  cd odoo/addons
+  589  ls
+  590  unzip web_responsive-18.0.1.0.6.zip
+  591  ls
+  592  rm web_responsive
+  593  mv web_responsive-18.0.1.0.6.zip  ../..
+  594  ls
+  595  ls
+  596  rm web_responsive
+  597  rm web_responsive-18.0.1.0.6.zip
+  598  ls
+  599  cd ..
+  600  ls
+  601  cd addons
+  602  ls
+  603  ls -lha
+  604  cd ..
+  605  chmod -R 777 addons
+  606  docker compose up
+  607  docker compose up
+  608  cd ..
+  609  cd integrador/
+  610  cat .env
+  611  cd ..
+  612  docker ps
+  613  docker logs -f odoo
+  614  cd in
+  615  cd odoo/
+  616  ls
+  617  cat docker-compose.yaml
+  618  docker compose down
+  619  docker compose up
+  620  lsof -i :8072
+  621  docker compose up
+  622  vi docker-compose.yaml
+  623  vi config/odoo.conf
+  624  docker ps
+  625  docker compose up
+  626  cd ..
+  627  docker ps
+  628  cp odoo/ odooBK/
+  629  cp -R odoo/ odooBK/
+  630  cd odoo
+  631  ls
+  632  docker compose up postgres
+  633  cd..
+  634  cd ..
+  635  cd integrador/
+  636  docker compose down
+  637  docker ps
+  638  docker compose down
+  639  docker compose up
+  640  docker compose up
+  641  cd ..
+  642  cd odoo
+  643  docker compose up
+  644  cd ..
+  645  ls
+  646  ls -lha
+  647  rm odoo
+  648  rm -Rf odoo
+  649  cp odooBK/ odoo/
+  650  cp -R odooBK/ odoo/
+  651  chmod -R 777 odoo
+  652  cd odoo
+  653  docker compose up
+  654  docker compose up
+  655  docker compose up
+  656  cd postgres_data/
+  657  ls
+  658  cd ..
+  659  rm -Rf postgres_data/*
+  660  rm -Rf odoo_data/*
+  661  ls
+  662  docker compose up
+  663  rm -Rf odoo_data/*
+  664  rm -Rf postgres_data/*
+  665  docker compose up
+  666  docker ps
+  667  docker logs -f odoo
+  668  docker ps
+  669  cd odoo
+  670  ls
+  671  cat config/odoo.conf
+  672  docker os
+  673  docker ps
+  674  docker logs -f odoo
+  675  cd ..
+  676  ls
+  677  cd odoo
+  678  docker compose down
+  679  ls
+  680  cd ..
+  681  cd odoo
+  682  ls
+  683  cat checklog-odoo.cfg
+  684  cat eslint.config.cjs
+  685  cd ..
+  686  ls
+  687  docker ps
+  688  rm -Rf odoo
+  689  cp odooBK/ odoo/
+  690  cp -R odooBK/ odoo/
+  691  chmod -R 777 odoo
+  692  cd odoo
+  693  docker compose up
+  694  pwd
+  695  cd ..
+  696  rm -Rf odoo/*
+  697  cat scripts/restore.sh
+  698  restic snapshot -l
+  699  restic --help
+  700  restic list
+  701  restic --help
+  702  cat scripts/restore.sh
+  703  restic restore latest  --target / -r  /home/ec2-user/backups/restic/  --include "/home/ec2-user/odoo
+  704  restic restore latest  --target / -r  /home/ec2-user/backups/restic/  --include "/home/ec2-user/odoo"
+  705  restic restore latest  --target / -r  /home/ec2-user/backups/restic/  --include "/home/ec2-user/odoo"
+  706  fg 1
+  707  restic restore
+  708  restic restore -l
+  709  restic -r  /home/ec2-user/backups/restic/
+  710  restic -r  /home/ec2-user/backups/restic/ snapshot
+  711  restic -r  /home/ec2-user/backups/restic/ snapshots
+  712  cat scripts/backup.sh
+  713  restic -r  /home/ec2-user/backups/restic/ snapshots
+  714  restic restore 420b1a17  --target / -r  /home/ec2-user/backups/restic/  --include "/home/ec2-user/odoo"
+  715  ls
+  716  cd odoo
+  717  ls
+  718  cat README.md
+  719  ls
+  720  rm LICENSE README.md checklog-odoo.cfg  eslint.config.cjs prettier.config.cjs
+  721  y
+  722  ls
+  723  cat docker-compose.yaml
+  724  ls
+  725  rm   requirements.txt test-requirements.txt
+  726  ls
+  727  ls
+  728  docker compose up
+  729  rm -Rf odoo_data/*
+  730  rm -Rf postgres_data/*
+  731  docker compose up
+  732  docker compose up
+  733  vi docker-compose.yaml
+  734  docker compose up
+  735  cat config/odoo.conf
+  736  vi config/odoo.conf
+  737  docker compose down
+  738  docker compose up
+  739  ls
+  740  cd ..
+  741  restic restore 420b1a17  --target / -r  /home/ec2-user/backups/restic/  --include "/home/ec2-user/odoo"
+  742  cat scripts/restore.sh
+  743  vi scripts/restore.sh
+  744  cat scripts/restore.sh
+  745  restic restore 420b1a17  --target / -r  /home/ec2-user/backups/restic/  --include "/home/ec2-user/odoo"
+  746  cd odoo
+  747  vi config/odoo.conf
+  748  docker compose up
+  749  firewall-cmd
+  750  systemctl status firewalld
+  751  yum install netstat
+  752  yum install net-tools
+  753  netstat
+  754  netstat -pnta
+  755  vi config/odoo.conf
+  756  docker compose down
+  757  docker compose up
+  758  docker compose down
+  759  cd addons/
+  760  ls
+  761  cd ..
+  762  ls
+  763  rm -f LICENSE README.md checklog-odoo.cfg eslint.config.cjs prettier.config.cjs requirements.txt test-requirements.txt
+  764  ls
+  765  rm -Rf addons/*
+  766  cp ../web_responsive-18.0.1.0.6.zip  addons/
+  767  cd addons/
+  768  unzip web_responsive-18.0.1.0.6.zip
+  769  cd ..
+  770  ls -lha addons/
+  771  ls -lha addons/web_responsive
+  772  docker compose up
+  773  history
+  774  docker compose run --rm odoo python3 /usr/bin/odoo -d odoo -u web --stop-after-init
+  775  docker ps
+  776  docker compose up
+  777  rm -Rf odoo_data/* postgres_data/*
+  778  ls
+  779  docker compose up
+  780  cd ..
+  781  cp Brand_18_0_251013_133735.zip  odoo/addons/
+  782  cd odoo/addons/
+  783  ls
+  784  unzip Brand_18_0_251013_133735.zip
+  785  cd ..
+  786  docker compose up
+  787  cp ../product_brand-18.0.1.1.0.zip addons/
+  788  cd addons/
+  789  unzip product_brand-18.0.1.1.0.zip
+  790  cd ..
+  791  docker compose up
+  792  docker ps
+  793  ls
+  794  exit
+  795  cd integrador/
+  796  vi .env
+  797  docker compose down
+  798  ls
+  799  mv app/ appbk
+  800  docker compose up
+  801  docker build -t odoo-woocommerce-integrator .
+  802  docker compose up
+  803  vi app/odoo_client.py
+  804  mv app/odoo_client.py  app/odoo_client.py.bk
+  805  vi app/odoo_client.py
+  806  docker build -t odoo-woocommerce-integrator .
+  807  docker compose up
+  808  vi .env
+  809  vi .env
+  810  docker build -t odoo-woocommerce-integrator .
+  811  docker compose up
+  812  docker compose up
+  813  mv -R app/ appbk/
+  814  ls
+  815  mv app/ appbk/
+  816  ls
+  817  docker build -t odoo-woocommerce-integrator .
+  818  docker compose up
+  819  docker build -t odoo-woocommerce-integrator .
+  820  docker compose up
+  821  vi requirements.txt
+  822  docker build -t odoo-woocommerce-integrator .
+  823  docker compose up
+  824  docker build -t odoo-woocommerce-integrator .
+  825  docker compose up
+  826  docker build -t odoo-woocommerce-integrator .
+  827  docker compose up
+  828  mv app/ appbk/
+  829  docker build -t odoo-woocommerce-integrator .
+  830  docker compose up
+  831  cat docker-compose.yaml
+  832  docker compose up
+  833  curl 'http://localhost:8088/debug/odoo/product-fields?contains=brand'
+  834  curl 'http://localhost:8088/debug/odoo/product-fields?contains=marca'
+  835  curl -X POST 'http://localhost:8088/sync/products?limit=5&update_content=true'
+  836  curl -X POST 'http://localhost:8088/sync/products?limit=5&update_content=true'
+  837  curl 'http://localhost:8088/debug/woocommerce/brands'
+  838  curl 'http://localhost:8088/debug/woocommerce/brands'
+  839  curl 'http://localhost:8088/debug/woocommerce/brands'
+  840  curl -X POST 'http://localhost:8088/sync/products?limit=5&update_content=true'
+  841  curl -X POST 'http://localhost:8088/sync/products?limit=1000&update_content=true'
+  842  docker ps
+  843  ls
+  844  cd ec2-user/
+  845  ls
+  846  sh scripts/backup.sh
+  847  docker ps
+  848  curl -X POST "http://localhost:8088/sync/product-images?search_online=true" `
+  849    -H "Content-Type: text/csv" `
+  850    --data-binary "@product_images.csv"
+  851  cd integrador/
+  852  curl -X POST "http://localhost:8088/sync/product-images?search_online=true" -H "Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" --data-binary @pagos.xlsx
+  853  curl -X POST "http://localhost:8088/sync/product-images?search_online=true" -H "Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" --data-binary @Pagos.xlsx
+  854  curl -X POST "http://localhost:8088/sync/product-images?search_online=true" -H "Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" --data-binary @Pagos.xlsx
+  855  docker compose down
+  856  $body = @'
+  857  [
+  858    {"sku":"m-160N","brand":"Braesi","name":"Mesa de Acero Inoxidable 160"}
+  859  ]
+  860  '@
+  861  Invoke-RestMethod -Method Post `
+  862    -Uri "http://localhost:8088/sync/product-images?search_online=true" `
+  863    -ContentType "application/json" `
+  864    -Body $body
+  865    -ContentType "application/json" `
+  866    -Body $body
+  867  curl -X POST "http://localhost:8088/sync/product-images?search_online=true" -H "Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" --data-binary @boby $body = @'
+  868  [
+  869    {"sku":"m-160N","brand":"Braesi","name":"Mesa de Acero Inoxidable 160"}
+  870  ]
+  871  '@
+  872  curl -X POST "http://localhost:8088/sync/product-images?search_online=true" -H "Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" --data-binary = @'
+  873  [
+  874    {"sku":"m-160N","brand":"Braesi","name":"Mesa de Acero Inoxidable 160"}
+  875  ]
+  876  '@
+  877  curl -X POST "http://localhost:8088/sync/product-images?search_online=true" -H "Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" --body = @'
+  878  [
+  879    {"sku":"m-160N","brand":"Braesi","name":"Mesa de Acero Inoxidable 160"}
+  880  ]
+  881  '@
+  882  curl -X POST "http://localhost:8088/sync/product-images?search_online=true" -H "Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" --data-binary = @'
+  883  [
+  884    {"sku":"m-160N","brand":"Braesi","name":"Mesa de Acero Inoxidable 160"}
+  885  ]
+  886  '@
+  887  cat > prueba.json <<'EOF'
+  888  [
+  889    {"sku":"m-160N","brand":"Braesi","name":"Mesa de Acero Inoxidable 160"}
+  890  ]
+  891  EOF
+  892  curl -X POST "http://localhost:8088/sync/product-images?search_online=true"   -H "Content-Type: application/json"   --data-binary @prueba.json
+  893  curl -X POST "http://localhost:8088/sync/product-images?search_online=true" -H "Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" --data-binary @Pagos.xlsx
+  894
+  895  curl -X POST "http://localhost:8088/sync/product-images?search_online=true" -H "Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" --data-binary @Pagos.xlsx
+  896  curl -X POST "http://localhost:8088/sync/product-images?search_online=true" -H "Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" --data-binary @Pagos.xlsx | jq
+  897  vi .env
+  898  curl --max-time 180 -X POST "http://localhost:8088/sync/product-images?search_online=true" -H "Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" --data-binary @pagos.xlsx
+  899  curl --max-time 180 -X POST "http://localhost:8088/sync/product-images?search_online=true" -H "Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" --data-binary @Pagos.xlsx
+  900  cd integrador/
+  901  curl --max-time 180 -X POST "http://localhost:8088/sync/product-images?search_online=true" -H "Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" --data-binary @Pagos.xlsx
+  902  docker ps
+  903  docker logs -f wordpress-wordpress-1
+  904  docker logs -f wordpress-wordpress-1
+  905  docker logs wordpress-wordpress-1
+  906  docker logs -f wordpress-wordpress-1
+  907  cd integrador/
+  908  rm -Rf appbk/
+  909  docker compose down
+  910  mv app/ appbk
+  911  docker compose up
+  912  docker build -t odoo-woocommerce-integrator .
+  913  docker compose up
+  914  vi requirements.txt
+  915  docker build -t odoo-woocommerce-integrator .
+  916  docker compose up
+  917  docker compose up
+  918  cd app
+  919  mv image_finder.py image_finder.py.bk
+  920  vi image_finder.py.bk
+  921  vi image_finder.py
+  922  cd integrador/
+  923  curl -X POST "http://localhost:8088/sync/product-images?search_online=true"   -F "products_file=@Inventario Pagos.xlsx;type=application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"   -F "brand_sources_file=@brand_sources_validado.csv;type=text/csv"
+  924  ls
+  925  curl -X POST "http://localhost:8088/sync/product-images?search_online=true"   -F "products_file=@Inventario Pagos.xlsx;type=application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"   -F "brand_sources_file=@brand_sources_validado.csv;type=text/csv"
+  926  curl -X POST "http://localhost:8088/sync/product-images?search_online=true"   -F "products_file=@Pagos.xlsx;type=application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"   -F "brand_sources_file=@brand_sources_validado.csv;type=text/csv"
+  927  ls
+  928  curl -X POST "http://localhost:8088/sync/product-images?search_online=true"   -F "products_file=@Pagos.xlsx;type=application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"   -F "brand_sources_file=@brand_sources_validado.csv;type=text/csv"
+  929  curl -X POST "http://localhost:8088/sync/product-images?search_online=true"   -H "Content-Type: application/json"   -d '[
+  930      {"sku":"m-160N","brand":"BRAESI","name":"Mesa de Acero Inoxidable 160"}
+  931    ]'
+  932  curl -X POST "http://localhost:8088/sync/product-images?search_online=true"   -F "products_file=@Pagos.xlsx;type=application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"   -F "brand_sources_file=@brand_sources_validado.csv;type=text/csv"
+  933  cd integrador/
+  934  ls
+  935  docker build -t odoo-woocommerce-integrator .
+  936  docker compose up
+  937  docker ps
+  938  ls
+  939  cd integrador/
+  940  ls
+  941  docker os
+  942  docker ps
+  943  docker logs odoo-woocommerce-integrator
+  944  docker logs -f odoo-woocommerce-integrator
+  945  curl http://localhost:8088/health/odoo
+  946  curl http://localhost:8088/health/woocomerce
+  947  curl http://localhost:8088/health/woocommerce
+  948  curl http://localhost:8088/health
+  949  curl 'http://localhost:8088/debug/woocommerce/brands'
+  950  docker compose down
+  951  docker build -t odoo-woocommerce-integrator .
+  952  docker compose up
+  953  curl http://localhost:8088/debug/sync-status
+  954  docker pos
+  955  docker ps
+  956  docker logs odoo
+  957  docker logs -f  odoo
+  958  docker ps
+  959  cd wordpress/
+  960  docker compose down
+  961  restic -r  /home/ec2-user/backups/restic/ snapshots
+  962  cat ../scripts/restore.sh
+  963  restic -r  /home/ec2-user/backups/restic/ snapshots
+  964  restic restore 12cfee58  --target / -r  /home/ec2-user/backups/restic/  --include "/home/ec2-user/wordpress"
+  965  docker compose up
+  966  ls
+  967  cd wordpress/
+  968  ls
+  969  cd wp_data/
+  970  ls
+  971  cd ..
+  972  cat docker-compose.yaml
+  973  vi docker-compose.yaml
+  974  vi uploads.ini
+  975  docker compose down
+  976  docker compose up
+  977  vi uploads.ini
+  978  docker compose up
+  979  cat uploads.ini
+  980  vi uploads.ini
+  981  docker compose up
+  982  docker exec-it wordpress bash
+  983  docker exec -it wordpress bash
+  984  docker ps
+  985  docker exec -it wordpress-wordpress-1 bash
+  986  docker ps
+  987  cd ..
+  988  ls
+  989  cd logs/
+  990  ls
+  991  tail backup.log
+  992  tail -n 100 backup.log
+  993  cd ..
+  994  cat scripts/backup.sh
+  995  ls
+  996  docker ps
+  997  docker logs 114a6d413a92
+  998  cd integrador/
+  999  cat docker-compose.yaml
+ 1000  history

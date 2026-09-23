@@ -1,0 +1,17 @@
+services:
+  integrator:
+    image: odoo-woocommerce-integrator:latest
+    container_name: odoo-woocommerce-integrator
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "8088:8088"
+    networks:
+      integration_net:
+        aliases:
+          - integrator.local
+
+networks:
+  integration_net:
+    external: true

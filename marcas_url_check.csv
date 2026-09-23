@@ -1,0 +1,15 @@
+﻿marca,url_original,url_sugerida,status,ok,http_status,final_url,nota
+braesi,https://progas.com.br/es/?s=,https://progas.com.br/es/?s=,ok,True,200,https://progas.com.br/es/?s=m-160n,
+aucma,https://es.aucmamedicalglobal.com/phoenix/admin/siteSearch/search?searchValue=refrigerador,https://es.aucmamedicalglobal.com/phoenix/admin/siteSearch/search?searchValue=refrigerador,ok,True,200,https://es.aucmamedicalglobal.com/phoenix/admin/siteSearch/search?searchValue=refrigerador,
+bermar,https://bermar.ind.br/produtos/?busca=,https://bermar.ind.br/produtos/?busca=,ok,True,200,https://bermar.ind.br/produtos/?busca=m-160n,
+dogado,baudin,https://baudinequipamientos.com/tienda/?q={sku},template,True,,,reemplazada por template baudin
+gelopar,https://www.gelopar.com.br/gbfe-150-pt/p,https://www.gelopar.com.br/gbfe-150-pt/p,ok,True,200,https://www.gelopar.com.br/gbfe-150-pt/p,
+inelro,https://www.inelrostore.com/mt%2014?_q=mt%2014&map=ft,https://www.inelrostore.com/mt%2014?_q=mt%2014&map=ft,ok,True,200,https://www.inelrostore.com/mt%2014?_q=mt%2014&map=ft,
+lundar,https://www.chinashinelong.com/,https://www.chinashinelong.com/,ok,True,200,https://www.chinashinelong.com/,
+ma ar acrilic,baudin,https://baudinequipamientos.com/tienda/?q={sku},template,True,,,reemplazada por template baudin
+metvisa,https://www.metvisa.com.br/es/produtos/?cat=,https://www.metvisa.com.br/es/produtos/?cat=,ok,True,200,https://www.metvisa.com.br/es/produtos/?cat=m-160n,
+morelli,https://morelli.com.ar/,https://morelli.com.ar/,ok,True,200,https://morelli.com.ar/,
+nacional,nan,nan,empty,False,,,url vacia
+progas,https://progas.com.br/es/?s=,https://progas.com.br/es/?s=,ok,True,200,https://progas.com.br/es/?s=m-160n,
+sulpack,baudin,https://baudinequipamientos.com/tienda/?q={sku},template,True,,,reemplazada por template baudin
+ziliani,baudin,https://baudinequipamientos.com/tienda/?q={sku},template,True,,,reemplazada por template baudin

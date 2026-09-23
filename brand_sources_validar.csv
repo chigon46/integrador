@@ -1,0 +1,16 @@
+﻿brand,search_url
+BRAESI,https://progas.com.br/braesi
+AUCMA,https://es.aucmamedicalglobal.com/ - confirmar si es correcto
+DOGADO,https://baudinequipamientos.com/tienda/?q={sku}
+GELOPAR,https://www.gelopar.com.br/
+INELRO,https://www.inelrostore.com
+LUNDAR,https://www.chinashinelong.com/ - confirmar si es correcto
+MA AR ACRILIC,https://maaracrilic.com.ar/
+METVISA,https://www.metvisa.com.br/
+MORELLI,https://morelli.com.ar/
+PROGAS,https://progas.com.br/
+SULPACK,
+ZILIANI,
+
+
+sitio_wildcard, https://baudinequipamientos.com/

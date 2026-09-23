@@ -1,0 +1,143 @@
+ANALISIS OPERATIVO BASADO EN history
+Fecha: 2026-07-10
+Proyecto: odoo-woocommerce-integrator
+
+1) OBJETIVO DEL ANALISIS
+Este documento resume lo observado en el archivo history y lo contrasta con la configuracion actual del integrador para dejar:
+- Hallazgos tecnicos
+- Riesgos operativos
+- Flujo correcto de build/deploy
+- Checklist de operacion recomendado
+
+2) FUENTES REVISADAS
+- history
+- docker-compose.yaml
+- Dockerfile
+- .env.example
+
+3) HALLAZGOS PRINCIPALES (history)
+3.1 Flujo de despliegue
+- Se observa uso repetido de build manual con Docker:
+  docker build -t odoo-woocommerce-integrator .
+- Se observa uso de docker compose up/down para levantar y reiniciar.
+- Se detectan intentos con errores tipograficos (ejemplo: dwon, dokcer, checkuot, restat).
+
+Conclusion:
+El patron real de trabajo es: build manual de imagen + compose para correr contenedor.
+
+3.2 Operacion de integracion
+- Se ejecutaron pruebas manuales de sincronizacion:
+  - /sync/products
+  - /sync/orders
+  - /debug/odoo/sale-orders
+  - webhook /webhooks/woocommerce/order
+- Se usaron logs para diagnostico:
+  docker logs -f odoo-woocommerce-integrator
+
+Conclusion:
+El flujo funcional del integrador fue validado manualmente varias veces.
+
+3.3 Infraestructura y servicios
+- Se observaron intervenciones sobre nginx, wordpress, odoo y docker daemon.
+- Se observaron reinicios de docker y host (reboot).
+- Se realizaron acciones sobre volumenes Docker y copias de datos.
+
+Conclusion:
+Hubo tareas de recuperacion/administracion de stack completo (no solo integrador).
+
+3.4 Backup y almacenamiento
+- Se observan intentos de configuracion de aws/restic y ejecucion de backup.sh.
+- Se revisaron logs de backup.
+
+Conclusion:
+Existe proceso de backup operativo, pero con signos de prueba/error manual.
+
+3.5 Seguridad operativa (critico)
+- En history aparecen secretos en comandos interactivos:
+  - password de RESTIC exportado en shell
+  - token/secret de webhook enviado en curl
+- Esto deja credenciales registradas en history de shell.
+
+Conclusion:
+Riesgo alto de exposicion de secretos. Se recomienda rotacion inmediata y endurecimiento.
+
+4) CONTRASTE CON CONFIGURACION ACTUAL
+4.1 docker-compose.yaml (actual)
+- Usa imagen preconstruida:
+  image: odoo-woocommerce-integrator:latest
+- No define bloque build.
+- Usa red externa integration_net y alias integrator.local.
+
+4.2 Dockerfile (actual)
+- Imagen base python:3.12-slim
+- Instala requirements.txt
+- Expone 8088
+- Ejecuta uvicorn app.main:app
+
+4.3 .env.example (actual)
+- Variables de Odoo, WooCommerce, webhook y background sync completas.
+- Coincide con el comportamiento esperado del integrador.
+
+5) FLUJO CORRECTO RECOMENDADO (ENTORNO ACTUAL)
+Paso 1: construir imagen
+  docker build -t odoo-woocommerce-integrator .
+
+Paso 2: levantar contenedor con compose
+  docker compose up -d
+
+Paso 3: validar salud
+  curl http://localhost:8088/health
+  curl http://localhost:8088/health/odoo
+  curl http://localhost:8088/health/woocommerce
+
+Paso 4: validar sincronizacion
+  curl -X POST "http://localhost:8088/sync/products?limit=20"
+  curl -X POST "http://localhost:8088/sync/orders?limit=50"
+
+Paso 5: observar logs
+  docker logs -f odoo-woocommerce-integrator
+
+Cuando hay cambios de codigo:
+  docker build -t odoo-woocommerce-integrator .
+  docker compose up -d --force-recreate
+
+6) RIESGOS DETECTADOS Y MITIGACIONES
+Riesgo A: secretos expuestos en history (alto)
+Mitigaciones:
+- Rotar WEBHOOK_SECRET, WC_CONSUMER_SECRET y cualquier password/token expuesto.
+- No pasar secretos en linea de comandos.
+- Usar archivo .env y lectura por aplicacion.
+- Configurar shell para no guardar comandos sensibles.
+
+Riesgo B: errores tipograficos en comandos operativos (medio)
+Mitigaciones:
+- Definir runbook con comandos exactos.
+- Crear scripts estandar (deploy, healthcheck, rollback).
+
+Riesgo C: cambios manuales sobre volumenes/datos sin trazabilidad (alto)
+Mitigaciones:
+- Estandarizar restauraciones via script documentado.
+- Registrar toda accion destructiva con ticket/bitacora.
+
+Riesgo D: dependencia de pruebas manuales (medio)
+Mitigaciones:
+- Agregar smoke checks automatizados post-deploy.
+- Agregar prueba automatica de endpoints clave.
+
+7) CHECKLIST RAPIDO DE OPERACION
+[ ] .env actualizado y sin secretos hardcodeados en comandos
+[ ] Imagen construida con tag esperado
+[ ] compose levantado en estado healthy
+[ ] /health, /health/odoo y /health/woocommerce OK
+[ ] /sync/products y /sync/orders probados con limites bajos
+[ ] logs del integrador sin errores criticos
+[ ] backup probado y log de backup revisado
+
+8) ACCIONES INMEDIATAS SUGERIDAS
+1. Rotar secretos usados historicamente en shell.
+2. Limpiar historial de comandos sensibles en servidor.
+3. Consolidar un script deploy.sh con build + up + healthchecks.
+4. Consolidar un script verify.sh para endpoints criticos.
+5. Versionar runbook operativo junto al repositorio.
+
+FIN DEL DOCUMENTO
