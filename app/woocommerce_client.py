@@ -205,8 +205,56 @@ class WooCommerceClient:
                 params=self.auth_params,
                 json={"images": [{"src": image_url}]},
             )
-            response.raise_for_status()
+            if response.is_error:
+                try:
+                    error_payload = response.json()
+                except ValueError:
+                    error_payload = {}
+
+                if isinstance(error_payload, dict):
+                    error_code = str(error_payload.get("code") or "")
+                    error_message = str(error_payload.get("message") or "")
+                else:
+                    error_code = ""
+                    error_message = ""
+
+                if not error_message:
+                    error_message = response.text[:500] or response.reason_phrase
+
+                error_detail = f"HTTP {response.status_code}"
+                if error_code:
+                    error_detail += f" ({error_code})"
+                raise RuntimeError(
+                    f"WooCommerce rechazó la imagen: {error_detail}: {error_message[:500]}"
+                ) from None
+
             return response.json()
+
+    async def get_product_image_by_sku(self, sku: str) -> dict[str, Any] | None:
+        async with httpx.AsyncClient(timeout=30) as client:
+            response = await client.get(
+                f"{self.base_url}/products",
+                params={**self.auth_params, "sku": sku},
+            )
+            response.raise_for_status()
+            matches = response.json()
+            if not matches:
+                return None
+
+            product = matches[0]
+            images = product.get("images") or []
+            if not images or not images[0].get("src"):
+                return {
+                    "id": product.get("id"),
+                    "sku": product.get("sku") or sku,
+                    "image_url": "",
+                }
+
+            return {
+                "id": product.get("id"),
+                "sku": product.get("sku") or sku,
+                "image_url": images[0]["src"],
+            }
 
     async def mark_order_synced(self, order_id: int, sale_order_id: int) -> dict[str, Any]:
         metadata = [

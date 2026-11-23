@@ -18,6 +18,17 @@ class Settings(BaseSettings):
 
     webhook_secret: str
 
+    bfl_api_key: str = ""
+    image_generation_logo_url: str = (
+        "https://sovai.com.uy/wp-content/uploads/2026/03/"
+        "cropped-Logo-SOVAi-1-159x37.png"
+    )
+    image_generation_storage_path: str = "/app/generated_images"
+    image_generation_internal_base_url: str = "http://integrator.local:8088"
+
+    bcu_wsdl_url: str = "https://cotizaciones.bcu.gub.uy/wscotizaciones/servlet/awsbcucotizaciones"
+    bcu_default_group: int = 1
+
     enable_background_sync: bool = False
     background_sync_interval_seconds: int = 60
     background_orders_limit: int = 50

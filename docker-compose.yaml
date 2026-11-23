@@ -7,6 +7,8 @@ services:
       - .env
     ports:
       - "8088:8088"
+    volumes:
+      - generated_images:/app/generated_images
     networks:
       integration_net:
         aliases:
@@ -15,3 +17,6 @@ services:
 networks:
   integration_net:
     external: true
+
+volumes:
+  generated_images:

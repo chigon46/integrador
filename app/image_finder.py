@@ -1,7 +1,11 @@
+import logging
 import re
-from urllib.parse import quote_plus, urljoin
+from urllib.parse import parse_qs, quote_plus, urljoin, urlparse
 
 import httpx
+
+
+logger = logging.getLogger(__name__)
 
 
 class InternetImageFinder:
@@ -29,8 +33,11 @@ class InternetImageFinder:
         sku: str,
         brand: str | None = None,
         name: str | None = None,
+        search_reference: str | None = None,
     ) -> str | None:
-        queries = self._build_queries(sku=sku, brand=brand, name=name)
+        lookup_sku = (search_reference or sku).strip()
+        search_name = self._normalize_search_name(name)
+        queries = self._build_queries(sku=lookup_sku, brand=brand, name=search_name)
         if not queries:
             return None
 
@@ -38,30 +45,46 @@ class InternetImageFinder:
             timeout=self.timeout_seconds,
             follow_redirects=True,
         ) as client:
-            brand_image = await self._search_brand_source(
-                client=client,
-                sku=sku,
-                brand=brand,
-                name=name,
-            )
+            try:
+                brand_image = await self._search_brand_source(
+                    client=client,
+                    sku=lookup_sku,
+                    brand=brand,
+                    name=search_name,
+                )
+            except (httpx.HTTPError, httpx.InvalidURL) as exc:
+                logger.warning(
+                    "Brand image search failed for brand=%r sku=%r: %s",
+                    brand,
+                    sku,
+                    exc,
+                )
+                brand_image = None
             if brand_image:
-                return brand_image
+                return self._normalize_image_url(brand_image)
 
             site_image = await self._search_priority_site(
                 client=client,
-                sku=sku,
+                sku=lookup_sku,
                 brand=brand,
-                name=name,
+                name=search_name,
             )
             if site_image:
-                return site_image
+                return self._normalize_image_url(site_image)
 
             for query in queries:
                 image_url = await self._search_bing_images(client=client, query=query)
                 if image_url:
-                    return image_url
+                    return self._normalize_image_url(image_url)
 
         return None
+
+    @staticmethod
+    def _normalize_search_name(name: str | None) -> str | None:
+        normalized_name = (name or "").strip()
+        if " - " in normalized_name:
+            normalized_name = normalized_name.rsplit(" - ", maxsplit=1)[0].strip()
+        return normalized_name or None
 
     async def _search_brand_source(
         self,
@@ -361,6 +384,14 @@ class InternetImageFinder:
             return False
         image_hints = [".jpg", ".jpeg", ".png", ".webp", "format="]
         return any(hint in lowered for hint in image_hints)
+
+    def _normalize_image_url(self, url: str) -> str:
+        parsed_url = urlparse(url)
+        if parsed_url.path.rstrip("/").endswith("/api/og-image"):
+            source_urls = parse_qs(parsed_url.query).get("src", [])
+            if source_urls and source_urls[0].startswith(("http://", "https://")):
+                return source_urls[0]
+        return url
 
     def _normalize_sku(self, sku: str) -> str:
         text = (sku or "").strip().lower()

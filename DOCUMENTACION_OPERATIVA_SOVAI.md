@@ -23,6 +23,10 @@ Variables principales:
 - ODOO_URL, ODOO_DB, ODOO_USER, ODOO_PASSWORD
 - WC_URL, WC_CONSUMER_KEY, WC_CONSUMER_SECRET
 - WEBHOOK_SECRET
+- BFL_API_KEY (opcional; requerido para generar imagenes de producto)
+- IMAGE_GENERATION_LOGO_URL (default: logo oficial de SOVAI en sovai.com.uy)
+- IMAGE_GENERATION_STORAGE_PATH (default: /app/generated_images)
+- IMAGE_GENERATION_INTERNAL_BASE_URL (default: http://integrator.local:8088)
 
 Sincronizacion automatica:
 - ENABLE_BACKGROUND_SYNC
@@ -157,17 +161,38 @@ Para comparar con los pedidos existentes en Odoo:
 - Acepta validacion por firma WooCommerce o por header X-Integrator-Secret.
 
 ### 7.5 Imagenes por SKU
-- Endpoint:
 
-  POST /sync/product-images?search_online=false
+ Para generar y publicar en lote solo productos que ya tienen imagen en WooCommerce, combinar `generate_with_ai=true&only_with_image=true&auto_approve=true`. Usa la imagen actual de WordPress como fuente y no hace busquedas externas. Los productos sin imagen se informan en `skipped_no_image`.
+ Las llamadas de generacion procesan como maximo 100 filas. Para continuar un archivo grande, usar `next_offset` de la respuesta como el `offset` de la llamada siguiente.
 
-- Formatos soportados:
-  - CSV
-  - JSON
-  - XLSX
-  - multipart/form-data (productos + brand_sources)
+Ejemplo de prueba sin actualizar productos:
 
-- Si search_online=true y falta image_url, intenta encontrar imagen por internet usando marca/nombre/SKU.
+  curl -X POST "http://localhost:8088/sync/product-images?search_online=true&dry_run=true" \\
+    -F "products_file=@sovai_lista_m.xlsx" \\
+    -F "brand_sources_file=@brand_sources_validar.csv"
+
+Ejemplo para generar una vista previa desde la imagen ya cargada en WooCommerce:
+
+  curl -X POST "http://localhost:8088/sync/product-images?generate_with_ai=true" \
+    -H "Content-Type: application/json" \
+    -H "X-Integrator-Secret: TU_WEBHOOK_SECRET" \
+    -d '[{"sku":"SKU-LIMPIO","brand":"BRAESI","name":"Producto"}]'
+
+La respuesta incluye `source_image_url` para confirmar la imagen de origen, `preview_url` para revisar el resultado y `approval_endpoint`. Para publicarla luego de revisarla:
+
+  curl -X POST "http://localhost:8088/product-images/generations/ID_GENERACION/approve" \
+    -H "X-Integrator-Secret: TU_WEBHOOK_SECRET"
+
+  Ejemplo de lote de hasta 100 productos con imagen; edita la imagen actual y publica directamente:
+
+    curl -X POST "http://localhost:8088/sync/product-images?generate_with_ai=true&only_with_image=true&auto_approve=true&limit=100&offset=0" \\
+      -H "X-Integrator-Secret: TU_WEBHOOK_SECRET" \
+      -F "products_file=@sovai_lista_m.xlsx" \
+      -o lote-imagenes-0.json
+
+  La autoaprobacion evita la revision manual. Probar primero con un archivo pequeno y revisar `synced`, `skipped_no_image` y `errors`. Cada generacion consume creditos BFL. Para continuar, usar el `next_offset` de la respuesta en la siguiente llamada.
+
+La primera generacion requiere configurar `BFL_API_KEY` en `.env` con una clave del dashboard de Black Forest Labs y tener creditos disponibles. `IMAGE_GENERATION_LOGO_URL` puede apuntar a otro PNG publico si cambia el recurso de marca. El generador usa FLUX 3 Image por API, espera el resultado asincrono y lo descarga inmediatamente porque el enlace temporal expira. El contenedor conserva las vistas previas en un volumen Docker.
 
 ## 8) Archivos de entrada para imagenes
 ### CSV minimo
@@ -191,6 +216,7 @@ Columnas recomendadas:
 - image_url (opcional)
 - brand o marca (opcional)
 - name o nombre (opcional)
+- En `sovai_lista_m.xlsx`, `SKU limpio` se usa para encontrar el producto en WooCommerce, `SKU original` para buscar la imagen en fuentes externas y `Descripción` como nombre de búsqueda.
 
 ## 9) Operacion diaria recomendada
 1. Validar healths.
@@ -273,6 +299,32 @@ Como se hace:
 - Comando directo:
 
   curl -X POST "http://localhost:8088/sync/orders?limit=50"
+
+### 10.6.1 Cotizaciones del BCU (SOAP)
+Cuándo usarla:
+- Consultar cotizaciones del BCU para tasas de cambio o actualización de moneda.
+
+Como se hace:
+- Consulta directa del servicio:
+
+  curl "http://localhost:8088/debug/bcu/cotizaciones?monedas=1,2&fecha_desde=2025-09-20&fecha_hasta=2025-09-22&grupo=1"
+
+- Sincronizar cotizaciones a Odoo:
+
+  curl -X POST "http://localhost:8088/sync/currency-rates?monedas=1,2&fecha_desde=2025-09-20&fecha_hasta=2025-09-22&grupo=1"
+
+Observaciones:
+- El servicio del BCU usa SOAP con WSDL en:
+
+  https://cotizaciones.bcu.gub.uy/wscotizaciones/servlet/awsbcucotizaciones?wsdl
+
+- El campo `monedas` acepta códigos numericos del BCU (por ejemplo `1` para USD, etc.) y el valor debe coincidir con el catálogo del servicio.
+- La respuesta incluye `status`, `codigoerror`, `mensaje` e `items`, donde cada item trae `Fecha`, `Moneda`, `Nombre`, `CodigoISO`, `Emisor`, `TCC`, `TCV`, `ArbAct` y `FormaArbitrar`.
+- El BCU puede devolver `status=1` junto con cotizaciones validas; en ese caso se deben revisar los elementos de `items`.
+- Si `items` viene vacio, hay que revisar `codigoerror` y `mensaje`.
+- La sincronizacion guarda cada cotizacion en Odoo en `res.currency.rate`, buscando la moneda por `CodigoISO` (`USD`, `EUR`, `ARS`, etc.).
+- Si ya existe una tasa para la misma moneda y fecha, la actualiza; si no existe, la crea.
+- El BCU informa TCC como moneda extranjera expresada en UYU y Odoo guarda la tasa inversa.
 
 ### 10.7 Prueba de webhook
 Cuándo usarla:
@@ -377,6 +429,8 @@ Como se hace:
 - GET /debug/odoo/sale-orders?limit=10
 - GET /debug/odoo/product-fields?contains=brand
 - GET /debug/woocommerce/brands?search=texto
+- GET /debug/woocommerce/orders?limit=50&status=any
+- GET /debug/bcu/cotizaciones?monedas=1,2&fecha_desde=2025-09-20&fecha_hasta=2025-09-22&grupo=1
 - GET /debug/sync-status
 
 ## 13) Archivos relevantes del proyecto

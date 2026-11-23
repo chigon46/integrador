@@ -9,14 +9,18 @@ import logging
 import unicodedata
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime
+from pathlib import Path
 from typing import Any
 
 from fastapi import FastAPI, Header, HTTPException, Request
+from fastapi.responses import FileResponse
 from openpyxl import load_workbook
 
+from app.bcu_client import BCUClient
 from app.blueprints.ml import router as mercadolibre_router
 from app.image_finder import InternetImageFinder
 from app.odoo_client import OdooClient
+from app.product_image_generator import ProductImageGenerator
 from app.settings import settings
 from app.woocommerce_client import WooCommerceClient, _order_sync_metadata
 
@@ -117,6 +121,62 @@ async def debug_woocommerce_orders(limit: int = 50, status: str = "any") -> dict
     }
 
 
+@app.get("/debug/bcu/cotizaciones")
+async def debug_bcu_cotizaciones(
+    monedas: str = "1",
+    fecha_desde: str | None = None,
+    fecha_hasta: str | None = None,
+    grupo: int = 1,
+) -> dict:
+    moneda_ids = [int(part.strip()) for part in monedas.split(",") if part.strip()]
+    result = await BCUClient().get_cotizaciones(
+        monedas=moneda_ids,
+        fecha_desde=fecha_desde,
+        fecha_hasta=fecha_hasta,
+        grupo=grupo,
+    )
+    return result
+
+
+@app.post("/sync/currency-rates")
+async def sync_currency_rates(
+    monedas: str = "1",
+    fecha_desde: str | None = None,
+    fecha_hasta: str | None = None,
+    grupo: int = 1,
+) -> dict:
+    moneda_ids = [int(part.strip()) for part in monedas.split(",") if part.strip()]
+    result = await BCUClient().get_cotizaciones(
+        monedas=moneda_ids,
+        fecha_desde=fecha_desde,
+        fecha_hasta=fecha_hasta,
+        grupo=grupo,
+    )
+
+    if result.get("status") not in (0,):
+        return {"status": "error", "result": result}
+
+    try:
+        odoo = OdooClient()
+        for cot in result.get("items") or []:
+            if cot.get("CodigoISO"):
+                rate = cot.get("TCC") or cot.get("TCV")
+                if rate:
+                    odoo.execute(
+                        "res.currency.rate",
+                        "create",
+                        {
+                            "name": cot.get("Fecha"),
+                            "currency_id": 2,
+                            "rate": float(rate),
+                        },
+                    )
+    except Exception as exc:  # pragma: no cover
+        return {"status": "odoo_error", "error": str(exc), "result": result}
+
+    return {"status": "ok", "result": result}
+
+
 @app.get("/debug/odoo/sale-orders")
 async def debug_odoo_sale_orders(limit: int = 10) -> dict:
     orders = OdooClient().list_recent_sale_orders(limit=limit)
@@ -157,20 +217,86 @@ async def sync_inventory(limit: int = 500) -> dict:
 
 
 @app.post("/sync/product-images")
-async def sync_product_images(request: Request, search_online: bool = False) -> dict:
+async def sync_product_images(
+    request: Request,
+    search_online: bool = False,
+    generate_with_ai: bool = False,
+    dry_run: bool = False,
+    auto_approve: bool = False,
+    only_with_image: bool = False,
+    limit: int = 100,
+    offset: int = 0,
+    x_integrator_secret: str | None = Header(default=None),
+) -> dict:
+    if generate_with_ai and not _is_valid_integrator_secret(x_integrator_secret):
+        raise HTTPException(status_code=401, detail="Secreto de integracion invalido")
+    if limit < 1 or limit > 100:
+        raise HTTPException(status_code=422, detail="limit debe estar entre 1 y 100")
+    if offset < 0:
+        raise HTTPException(status_code=422, detail="offset no puede ser negativo")
+    if auto_approve and not generate_with_ai:
+        raise HTTPException(status_code=400, detail="auto_approve requiere generate_with_ai=true")
+    if auto_approve and not only_with_image:
+        raise HTTPException(
+            status_code=400,
+            detail="auto_approve requiere only_with_image=true para limitar el lote a productos con imagen",
+        )
+    if auto_approve and dry_run:
+        raise HTTPException(status_code=400, detail="auto_approve no se puede combinar con dry_run")
+
     entries, brand_sources = await _parse_product_images_request(request)
+    batch_entries = entries[offset : offset + limit] if generate_with_ai else entries
 
     woocommerce = WooCommerceClient()
     image_finder = InternetImageFinder(brand_sources=brand_sources)
+    image_generator = ProductImageGenerator(
+        api_key=settings.bfl_api_key,
+        logo_url=settings.image_generation_logo_url,
+        storage_path=settings.image_generation_storage_path,
+        internal_base_url=settings.image_generation_internal_base_url,
+    )
     synced = []
     discovered = []
+    previews = []
+    candidates = []
+    skipped_no_image = []
     not_found = []
     missing_image = []
     errors = []
 
-    for entry in entries:
+    for entry in batch_entries:
         sku = entry["sku"]
         image_url = entry.get("image_url") or ""
+
+        if generate_with_ai:
+            try:
+                product_image = await woocommerce.get_product_image_by_sku(sku)
+            except Exception as exc:
+                errors.append(
+                    {
+                        "sku": sku,
+                        "image_url": "",
+                        "error": f"Error obteniendo imagen actual de WooCommerce: {exc}",
+                    }
+                )
+                continue
+
+            if not product_image:
+                not_found.append({"sku": sku, "image_url": ""})
+                continue
+
+            current_image_url = product_image["image_url"]
+            if only_with_image and not current_image_url:
+                skipped_no_image.append(
+                    {
+                        "sku": sku,
+                        "brand": entry.get("brand"),
+                        "reason": "El producto no tiene una imagen en WooCommerce",
+                    }
+                )
+                continue
+            if only_with_image or not image_url:
+                image_url = current_image_url
 
         if not image_url and search_online:
             try:
@@ -178,6 +304,7 @@ async def sync_product_images(request: Request, search_online: bool = False) -> 
                     sku=sku,
                     brand=entry.get("brand"),
                     name=entry.get("name"),
+                    search_reference=entry.get("search_reference") or None,
                 )
                 if found_image:
                     image_url = found_image
@@ -186,6 +313,7 @@ async def sync_product_images(request: Request, search_online: bool = False) -> 
                             "sku": sku,
                             "brand": entry.get("brand"),
                             "name": entry.get("name"),
+                            "search_reference": entry.get("search_reference"),
                             "image_url": image_url,
                         }
                     )
@@ -199,12 +327,78 @@ async def sync_product_images(request: Request, search_online: bool = False) -> 
                 )
                 continue
 
+        if generate_with_ai:
+            if not image_url:
+                missing_image.append(
+                    {
+                        "sku": sku,
+                        "brand": entry.get("brand"),
+                        "name": entry.get("name"),
+                        "reason": "No se encontró imagen actual ni fuente online",
+                    }
+                )
+                continue
+
+            try:
+                preview = await image_generator.generate_preview(
+                    sku=sku,
+                    brand=entry.get("brand"),
+                    name=entry.get("name"),
+                    source_image_url=image_url,
+                    preview_base_url=str(request.base_url).rstrip("/"),
+                )
+                if auto_approve:
+                    generated_image_url = image_generator.get_internal_image_url(
+                        preview["generation_id"]
+                    )
+                    updated = await woocommerce.update_product_image_by_sku(
+                        sku=sku,
+                        image_url=generated_image_url,
+                    )
+                    if not updated:
+                        not_found.append({"sku": sku, "image_url": generated_image_url})
+                        continue
+
+                    image_generator.mark_approved(preview["generation_id"], preview)
+                    synced.append(
+                        {
+                            "sku": sku,
+                            "woocommerce_id": updated["id"],
+                            "generation_id": preview["generation_id"],
+                            "source_image_url": image_url,
+                            "image_url": generated_image_url,
+                        }
+                    )
+                else:
+                    previews.append(preview)
+            except Exception as exc:
+                errors.append(
+                    {
+                        "sku": sku,
+                        "image_url": image_url,
+                        "error": f"Error generando vista previa con IA: {exc}",
+                    }
+                )
+            continue
+
         if not image_url:
             missing_image.append(
                 {
                     "sku": sku,
                     "brand": entry.get("brand"),
                     "name": entry.get("name"),
+                }
+            )
+            continue
+
+        if dry_run:
+            candidates.append(
+                {
+                    "sku": sku,
+                    "brand": entry.get("brand"),
+                    "name": entry.get("name"),
+                    "search_reference": entry.get("search_reference"),
+                    "image_url": image_url,
                 }
             )
             continue
@@ -236,14 +430,80 @@ async def sync_product_images(request: Request, search_online: bool = False) -> 
 
     return {
         "received": len(entries),
+        "processed": len(batch_entries),
+        "offset": offset,
+        "next_offset": offset + len(batch_entries) if offset + len(batch_entries) < len(entries) else None,
         "search_online": search_online,
+        "generate_with_ai": generate_with_ai,
+        "auto_approve": auto_approve,
+        "only_with_image": only_with_image,
+        "dry_run": dry_run,
         "brand_sources": len(brand_sources),
         "synced": synced,
         "discovered": discovered,
+        "previews": previews,
+        "candidates": candidates,
+        "skipped_no_image": skipped_no_image,
         "not_found": not_found,
         "missing_image": missing_image,
         "errors": errors,
     }
+
+
+@app.get("/generated-images/{generation_id}.png")
+async def get_generated_image(generation_id: str) -> FileResponse:
+    image_generator = ProductImageGenerator(
+        api_key=settings.bfl_api_key,
+        logo_url=settings.image_generation_logo_url,
+        storage_path=settings.image_generation_storage_path,
+        internal_base_url=settings.image_generation_internal_base_url,
+    )
+    image_path = image_generator.get_image_path(generation_id)
+    if not image_path:
+        raise HTTPException(status_code=404, detail="Imagen generada no encontrada")
+    return FileResponse(image_path, media_type="image/png")
+
+
+@app.post("/product-images/generations/{generation_id}/approve")
+async def approve_generated_product_image(
+    generation_id: str,
+    x_integrator_secret: str | None = Header(default=None),
+) -> dict:
+    if not _is_valid_integrator_secret(x_integrator_secret):
+        raise HTTPException(status_code=401, detail="Secreto de integracion invalido")
+
+    image_generator = ProductImageGenerator(
+        api_key=settings.bfl_api_key,
+        logo_url=settings.image_generation_logo_url,
+        storage_path=settings.image_generation_storage_path,
+        internal_base_url=settings.image_generation_internal_base_url,
+    )
+    metadata = image_generator.load_generation(generation_id)
+    if not metadata:
+        raise HTTPException(status_code=404, detail="Vista previa no encontrada")
+    if metadata.get("status") != "pending":
+        raise HTTPException(status_code=409, detail="La vista previa ya fue aprobada")
+
+    image_url = image_generator.get_internal_image_url(generation_id)
+    updated = await WooCommerceClient().update_product_image_by_sku(
+        sku=metadata["sku"],
+        image_url=image_url,
+    )
+    if not updated:
+        raise HTTPException(status_code=404, detail="Producto no encontrado en WooCommerce")
+
+    image_generator.mark_approved(generation_id, metadata)
+    return {
+        "generation_id": generation_id,
+        "sku": metadata["sku"],
+        "woocommerce_id": updated["id"],
+        "image_url": image_url,
+        "status": "approved",
+    }
+
+
+def _is_valid_integrator_secret(candidate: str | None) -> bool:
+    return bool(candidate) and hmac.compare_digest(candidate, settings.webhook_secret)
 
 
 async def _sync_products(limit: int = 50, update_content: bool = True) -> dict:
@@ -656,7 +916,13 @@ def _normalize_brand_sources(raw: Any) -> dict[str, str]:
 
 def _normalize_product_image_row(row: Any) -> dict[str, str]:
     if not isinstance(row, dict):
-        return {"sku": "", "image_url": "", "brand": "", "name": ""}
+        return {
+            "sku": "",
+            "image_url": "",
+            "brand": "",
+            "name": "",
+            "search_reference": "",
+        }
 
     normalized_map = {
         _normalize_header_name(key): "" if value is None else str(value).strip()
@@ -665,13 +931,30 @@ def _normalize_product_image_row(row: Any) -> dict[str, str]:
     }
 
     return {
-        "sku": _find_first_value(normalized_map, ["sku", "default_code", "codigo", "codigo_sku", "cod", "item"]),
+        "sku": _find_first_value(
+            normalized_map,
+            ["sku_limpio", "sku", "default_code", "codigo", "codigo_sku", "cod", "item"],
+        ),
         "image_url": _find_first_value(
             normalized_map,
             ["image_url", "imagen_url", "url_imagen", "image", "imagen", "img_url", "foto_url"],
         ),
         "brand": _find_first_value(normalized_map, ["brand", "marca", "marcas"]),
         "name": _find_first_value(normalized_map, ["name", "nombre", "producto", "descripcion", "title"]),
+        "search_reference": _find_first_value(
+            normalized_map,
+            [
+                "search_reference",
+                "manufacturer_sku",
+                "supplier_sku",
+                "manufacturer_model",
+                "sku_original",
+                "model",
+                "modelo",
+                "referencia_fabricante",
+                "codigo_fabricante",
+            ],
+        ),
     }
 
 
@@ -707,6 +990,7 @@ def _validate_product_image_rows(rows: list[Any]) -> list[dict[str, str]]:
         image_url = str(row.get("image_url") or "").strip()
         brand = str(row.get("brand") or "").strip()
         name = str(row.get("name") or "").strip()
+        search_reference = str(row.get("search_reference") or "").strip()
 
         if not sku:
             raise HTTPException(
@@ -720,6 +1004,7 @@ def _validate_product_image_rows(rows: list[Any]) -> list[dict[str, str]]:
                 "image_url": image_url,
                 "brand": brand,
                 "name": name,
+                "search_reference": search_reference,
             }
         )
 
