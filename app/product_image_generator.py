@@ -42,16 +42,25 @@ class ProductImageGenerator:
         sku: str,
         brand: str | None,
         name: str | None,
-        source_image_url: str,
+        source_image_url: str | None,
         preview_base_url: str,
     ) -> dict[str, str]:
         if not self.api_key:
             raise ValueError("Falta configurar BFL_API_KEY")
-        self._validate_public_url(self.logo_url, "URL del logo SOVAI")
+        if source_image_url:
+            self._validate_public_url(self.logo_url, "URL del logo SOVAI")
 
-        source_image, source_mime = await self._download_source_image(source_image_url)
-        prompt = self._build_prompt(brand=brand, name=name, sku=sku)
-        image_data = base64.b64encode(source_image).decode("ascii")
+        prompt = self._build_prompt(
+            brand=brand,
+            name=name,
+            sku=sku,
+            has_reference=bool(source_image_url),
+        )
+        images = []
+        if source_image_url:
+            source_image, _ = await self._download_source_image(source_image_url)
+            images.append(base64.b64encode(source_image).decode("ascii"))
+            images.append(self.logo_url)
 
         async with httpx.AsyncClient(timeout=60, follow_redirects=True) as client:
             response = await client.post(
@@ -63,9 +72,9 @@ class ProductImageGenerator:
                 },
                 json={
                     "prompt": prompt,
-                    "images": [image_data, self.logo_url],
+                    **({"images": images} if images else {}),
                     "aspect_ratio": "auto",
-                    "resolution": "match_input",
+                    "resolution": "match_input" if images else "1k",
                     "grounding": False,
                 },
             )
@@ -90,7 +99,7 @@ class ProductImageGenerator:
                 raise ValueError("La imagen generada excede el limite de pixeles")
             final_image = generated_image.convert("RGB")
         output = io.BytesIO()
-        final_image.save(output, format="PNG", optimize=True)
+        final_image.save(output, format="JPEG", quality=92, optimize=True, progressive=True)
         final_image_bytes = output.getvalue()
 
         generation_id = uuid.uuid4().hex
@@ -102,7 +111,8 @@ class ProductImageGenerator:
             "sku": sku,
             "brand": brand or "",
             "name": name or "",
-            "source_image_url": source_image_url,
+            "source_image_url": source_image_url or "",
+            "generation_mode": "image_to_image" if source_image_url else "text_to_image",
             "status": "pending",
         }
         self._metadata_path(generation_id).write_text(
@@ -112,7 +122,7 @@ class ProductImageGenerator:
 
         return {
             **metadata,
-            "preview_url": f"{preview_base_url.rstrip('/')}/generated-images/{generation_id}.png",
+            "preview_url": f"{preview_base_url.rstrip('/')}/generated-images/{generation_id}.jpg",
             "approval_endpoint": f"/product-images/generations/{generation_id}/approve",
         }
 
@@ -184,8 +194,8 @@ class ProductImageGenerator:
                 raise ValueError("La imagen de origen excede el limite de pixeles")
             normalized = source.convert("RGB")
         output = io.BytesIO()
-        normalized.save(output, format="PNG")
-        return output.getvalue(), "image/png"
+        normalized.save(output, format="JPEG", quality=92, optimize=True)
+        return output.getvalue(), "image/jpeg"
 
     @staticmethod
     def _validate_public_url(image_url: str, label: str) -> None:
@@ -196,25 +206,33 @@ class ProductImageGenerator:
             raise ValueError(f"{label} no puede apuntar a localhost")
 
     @staticmethod
-    def _build_prompt(*, brand: str | None, name: str | None, sku: str) -> str:
+    def _build_prompt(
+        *, brand: str | None, name: str | None, sku: str, has_reference: bool = True
+    ) -> str:
         product = " ".join(part for part in (brand, name, f"SKU {sku}") if part)
-        return (
-
-            "Create a new, original, high-quality commercial product photograph using the supplied "
-            "image strictly as a visual reference for the physical product itself.\n\n"
-
-            "PRODUCT REFERENCE:\n"
+        reference_instructions = (
             "Study the reference image to understand the product's physical appearance, design, "
             "construction, proportions, colors, materials, controls, and functional details. "
             "Use it exclusively to understand what the product looks like. Do not reproduce "
-            "the original photograph, its composition, branding, graphic elements, or layout.\n"
-            "Generate a completely new photographic composition of the same product.\n\n"
+            "the original photograph, its composition, branding, graphic elements, or layout. "
+            "Generate a completely new photographic composition of the same product."
+            if has_reference
+            else "Create a plausible, realistic product photograph based on the product description "
+            "below. The name and brand are the only product information available, so avoid "
+            "inventing prominent technical details, labels, or text that cannot be inferred. "
+            "Show one complete product that fits the described category."
+        )
+        return (
+
+            "Create a new, original, high-quality commercial product photograph.\n\n"
+
+            "PRODUCT REFERENCE:\n"
+            f"{reference_instructions}\n\n"
 
             "CAMERA AND COMPOSITION:\n"
-            "Show the product from a different, attractive three-quarter perspective. "
-            "Create a professional commercial photography look. Preserve the product's actual "
-            "construction and recognizable characteristics. Do not invent components or details "
-            "that cannot reasonably be inferred from the reference. Show one complete product, "
+            "Show the product from an attractive three-quarter perspective. "
+            "Create a professional commercial photography look. Do not invent components or details "
+            "that cannot reasonably be inferred from the available information. Show one complete product, "
             "centered and clearly visible, with generous surrounding space. Use realistic "
             "perspective, natural proportions, and professional framing.\n\n"
 
@@ -225,15 +243,15 @@ class ProductImageGenerator:
             "- Refined, realistic studio lighting.\n"
             "- Balanced highlights, contrast, brightness, and reflections.\n"
             "- A restrained red accent inspired by the Sovai brand identity.\n"
-            "- Keep the product's original colors and materials unchanged.\n\n"
+            "- Keep the product colors and materials plausible for its category.\n\n"
 
             "BRANDING:\n"
-            "Do not Include the supplied Sovai logo as the only external brand identity.\n\n"
+            "Do not add logos, watermarks, or readable text to the image.\n\n"
 
             "FINAL RESULT:\n"
             "Produce a realistic, premium-quality commercial product photograph suitable "
             "for the Sovai online store and product catalog. The result must look like a "
-            "newly commissioned studio photograph, not an edited version of the reference.\n"
+            "newly commissioned studio photograph.\n"
             "Do not include additional logos, watermarks, credits, promotional text, "
             "decorative elements, or unrelated objects.\n\n"
 
@@ -262,7 +280,7 @@ class ProductImageGenerator:
         )
 
     def get_internal_image_url(self, generation_id: str) -> str:
-        return f"{self.internal_base_url}/generated-images/{generation_id}.png"
+        return f"{self.internal_base_url}/generated-images/{generation_id}.jpg"
 
     def get_image_path(self, generation_id: str) -> Path | None:
         if not re.fullmatch(r"[0-9a-f]{32}", generation_id):
@@ -271,7 +289,7 @@ class ProductImageGenerator:
         return image_path if image_path.is_file() else None
 
     def _image_path(self, generation_id: str) -> Path:
-        return self.storage_path / f"{generation_id}.png"
+        return self.storage_path / f"{generation_id}.jpg"
 
     def _metadata_path(self, generation_id: str) -> Path:
         return self.storage_path / f"{generation_id}.json"

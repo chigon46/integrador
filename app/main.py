@@ -224,6 +224,7 @@ async def sync_product_images(
     dry_run: bool = False,
     auto_approve: bool = False,
     only_with_image: bool = False,
+    only_without_image: bool = False,
     limit: int = 100,
     offset: int = 0,
     x_integrator_secret: str | None = Header(default=None),
@@ -236,10 +237,20 @@ async def sync_product_images(
         raise HTTPException(status_code=422, detail="offset no puede ser negativo")
     if auto_approve and not generate_with_ai:
         raise HTTPException(status_code=400, detail="auto_approve requiere generate_with_ai=true")
-    if auto_approve and not only_with_image:
+    if (only_with_image or only_without_image) and not generate_with_ai:
         raise HTTPException(
             status_code=400,
-            detail="auto_approve requiere only_with_image=true para limitar el lote a productos con imagen",
+            detail="only_with_image y only_without_image requieren generate_with_ai=true",
+        )
+    if only_with_image and only_without_image:
+        raise HTTPException(
+            status_code=400,
+            detail="only_with_image y only_without_image no se pueden usar juntos",
+        )
+    if auto_approve and not (only_with_image or only_without_image):
+        raise HTTPException(
+            status_code=400,
+            detail="auto_approve requiere only_with_image=true o only_without_image=true para limitar el lote",
         )
     if auto_approve and dry_run:
         raise HTTPException(status_code=400, detail="auto_approve no se puede combinar con dry_run")
@@ -260,6 +271,7 @@ async def sync_product_images(
     previews = []
     candidates = []
     skipped_no_image = []
+    skipped_with_image = []
     not_found = []
     missing_image = []
     errors = []
@@ -292,6 +304,15 @@ async def sync_product_images(
                         "sku": sku,
                         "brand": entry.get("brand"),
                         "reason": "El producto no tiene una imagen en WooCommerce",
+                    }
+                )
+                continue
+            if only_without_image and current_image_url:
+                skipped_with_image.append(
+                    {
+                        "sku": sku,
+                        "brand": entry.get("brand"),
+                        "reason": "El producto ya tiene una imagen en WooCommerce",
                     }
                 )
                 continue
@@ -328,23 +349,12 @@ async def sync_product_images(
                 continue
 
         if generate_with_ai:
-            if not image_url:
-                missing_image.append(
-                    {
-                        "sku": sku,
-                        "brand": entry.get("brand"),
-                        "name": entry.get("name"),
-                        "reason": "No se encontró imagen actual ni fuente online",
-                    }
-                )
-                continue
-
             try:
                 preview = await image_generator.generate_preview(
                     sku=sku,
                     brand=entry.get("brand"),
                     name=entry.get("name"),
-                    source_image_url=image_url,
+                    source_image_url=image_url or None,
                     preview_base_url=str(request.base_url).rstrip("/"),
                 )
                 if auto_approve:
@@ -366,6 +376,7 @@ async def sync_product_images(
                             "woocommerce_id": updated["id"],
                             "generation_id": preview["generation_id"],
                             "source_image_url": image_url,
+                            "generation_mode": preview["generation_mode"],
                             "image_url": generated_image_url,
                         }
                     )
@@ -437,6 +448,7 @@ async def sync_product_images(
         "generate_with_ai": generate_with_ai,
         "auto_approve": auto_approve,
         "only_with_image": only_with_image,
+        "only_without_image": only_without_image,
         "dry_run": dry_run,
         "brand_sources": len(brand_sources),
         "synced": synced,
@@ -444,13 +456,14 @@ async def sync_product_images(
         "previews": previews,
         "candidates": candidates,
         "skipped_no_image": skipped_no_image,
+        "skipped_with_image": skipped_with_image,
         "not_found": not_found,
         "missing_image": missing_image,
         "errors": errors,
     }
 
 
-@app.get("/generated-images/{generation_id}.png")
+@app.get("/generated-images/{generation_id}.jpg")
 async def get_generated_image(generation_id: str) -> FileResponse:
     image_generator = ProductImageGenerator(
         api_key=settings.bfl_api_key,
@@ -461,7 +474,7 @@ async def get_generated_image(generation_id: str) -> FileResponse:
     image_path = image_generator.get_image_path(generation_id)
     if not image_path:
         raise HTTPException(status_code=404, detail="Imagen generada no encontrada")
-    return FileResponse(image_path, media_type="image/png")
+    return FileResponse(image_path, media_type="image/jpeg")
 
 
 @app.post("/product-images/generations/{generation_id}/approve")

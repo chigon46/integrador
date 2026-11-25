@@ -162,7 +162,14 @@ Para comparar con los pedidos existentes en Odoo:
 
 ### 7.5 Imagenes por SKU
 
- Para generar y publicar en lote solo productos que ya tienen imagen en WooCommerce, combinar `generate_with_ai=true&only_with_image=true&auto_approve=true`. Usa la imagen actual de WordPress como fuente y no hace busquedas externas. Los productos sin imagen se informan en `skipped_no_image`.
+ Para generar y publicar automaticamente solo productos que ya tienen imagen, usar `generate_with_ai=true&only_with_image=true&auto_approve=true`. Para generar y publicar solo en productos que actualmente no tienen imagen, usar `generate_with_ai=true&only_without_image=true&auto_approve=true`; si no hay `image_url` ni se encuentra una imagen online, genera desde `name` o `descripcion`, `brand` y `sku`. Los productos que no coinciden con el filtro se informan en `skipped_no_image` o `skipped_with_image`. Los dos filtros no se pueden combinar.
+
+Ejemplo de lote para completar productos sin imagen y publicar automaticamente:
+
+  curl -X POST "http://localhost:8088/sync/product-images?generate_with_ai=true&only_without_image=true&auto_approve=true&limit=100&offset=0" \
+    -H "X-Integrator-Secret: TU_WEBHOOK_SECRET" \
+    -F "products_file=@sovai_lista_m.xlsx" \
+    -o lote-sin-imagenes-0.json
  Las llamadas de generacion procesan como maximo 100 filas. Para continuar un archivo grande, usar `next_offset` de la respuesta como el `offset` de la llamada siguiente.
 
 Ejemplo de prueba sin actualizar productos:
@@ -177,6 +184,8 @@ Ejemplo para generar una vista previa desde la imagen ya cargada en WooCommerce:
     -H "Content-Type: application/json" \
     -H "X-Integrator-Secret: TU_WEBHOOK_SECRET" \
     -d '[{"sku":"SKU-LIMPIO","brand":"BRAESI","name":"Producto"}]'
+
+Si el producto no tiene imagen en WooCommerce, el generador puede crear una propuesta desde texto con `name` (o `descripcion`), `brand` y `sku`; no es necesario enviar `image_url`. La imagen será una interpretación aproximada de esos datos. `only_with_image=true` excluye los productos sin imagen y `only_without_image=true` excluye los que ya tienen imagen. En ese caso la respuesta indica `generation_mode: text_to_image` y `source_image_url` queda vacío.
 
 La respuesta incluye `source_image_url` para confirmar la imagen de origen, `preview_url` para revisar el resultado y `approval_endpoint`. Para publicarla luego de revisarla:
 
