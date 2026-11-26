@@ -114,8 +114,8 @@ Ejemplo:
 
   curl -X POST "http://localhost:8088/sync/products?limit=50"
 
-### 7.2 Inventario seguro (sin tocar contenido web)
-- Solo precio/stock:
+### 7.2 Inventario y categorias
+- Sin actualizar nombre, descripcion ni imagenes: sincroniza precio, stock y categoria de Odoo. Si la categoria no existe en WooCommerce, la crea:
 
   POST /sync/inventory?limit=500
 

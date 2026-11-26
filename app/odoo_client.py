@@ -51,6 +51,7 @@ class OdooClient:
             "list_price",
             "qty_available",
             "description_sale",
+            "categ_id",
             "write_date",
         ]
         if settings.odoo_brand_field and self._product_field_exists(

@@ -530,10 +530,20 @@ async def _sync_products(limit: int = 50, update_content: bool = True) -> dict:
             product,
             update_content=update_content,
         )
+        odoo_category = product.get("categ_id")
+        woo_categories = result.get("categories") or []
         synced.append(
             {
                 "sku": product["default_code"],
                 "woocommerce_id": result["id"],
+                "category": (
+                    odoo_category[1]
+                    if isinstance(odoo_category, list) and len(odoo_category) > 1
+                    else None
+                ),
+                "woocommerce_category_id": (
+                    woo_categories[0].get("id") if woo_categories else None
+                ),
             }
         )
 

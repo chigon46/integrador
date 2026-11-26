@@ -232,6 +232,7 @@ Campos usados:
 - `list_price`: precio de venta.
 - `qty_available`: stock disponible.
 - `description_sale`: descripcion comercial.
+- `categ_id`: categoria del producto, sincronizada con una categoria plana de WooCommerce. Si no existe, se crea automaticamente.
 - campo de marca configurable con `ODOO_BRAND_FIELD`, por defecto `product_brand_id`.
 
 En WooCommerce se crean o actualizan productos simples con:
@@ -241,6 +242,7 @@ En WooCommerce se crean o actualizan productos simples con:
 - Precio regular.
 - Stock gestionado.
 - Cantidad de stock.
+- Categoria del producto, buscada por nombre (sin distinguir mayusculas, acentos o espacios repetidos) y creada si falta.
 - Descripcion.
 - Marca real de WooCommerce si `WC_BRAND_SYNC_MODE=brand`.
 - Atributo de marca si `WC_BRAND_SYNC_MODE=attribute`.
@@ -360,7 +362,7 @@ Probar sincronizacion de inventario sin pisar contenido web:
 curl -X POST 'http://localhost:8088/sync/inventory?limit=500'
 ```
 
-Este endpoint actualiza precio y stock desde Odoo hacia WooCommerce. No actualiza nombre, descripcion ni imagenes en productos existentes.
+Este endpoint actualiza precio, stock y categoria desde Odoo hacia WooCommerce. La categoria se crea en WooCommerce si no existe. No actualiza nombre, descripcion ni imagenes en productos existentes.
 
 Probar sincronizacion de imagenes por SKU (CSV):
 

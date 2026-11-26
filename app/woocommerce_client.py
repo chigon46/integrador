@@ -1,3 +1,4 @@
+import unicodedata
 from typing import Any
 
 import httpx
@@ -12,6 +13,7 @@ class WooCommerceClient:
             "consumer_key": settings.wc_consumer_key,
             "consumer_secret": settings.wc_consumer_secret,
         }
+        self._product_category_ids: dict[str, int] = {}
 
     async def health(self) -> dict[str, Any]:
         async with httpx.AsyncClient(timeout=15) as client:
@@ -34,6 +36,7 @@ class WooCommerceClient:
             "manage_stock": True,
             "stock_quantity": int(product.get("qty_available") or 0),
         }
+        category_name = _extract_product_category(product)
         content_payload = {
             "name": product["name"],
             "sku": sku,
@@ -42,6 +45,13 @@ class WooCommerceClient:
         }
         brand = _extract_brand(product)
         async with httpx.AsyncClient(timeout=30) as client:
+            if category_name:
+                category_id = await self._get_or_create_product_category(
+                    client,
+                    category_name,
+                )
+                inventory_payload["categories"] = [{"id": category_id}]
+
             if brand and settings.wc_brand_sync_mode == "brand":
                 brand_id = await self._get_or_create_brand(client, brand)
                 if brand_id:
@@ -83,6 +93,63 @@ class WooCommerceClient:
 
             response.raise_for_status()
             return response.json()
+
+    async def _get_or_create_product_category(
+        self,
+        client: httpx.AsyncClient,
+        category_name: str,
+    ) -> int:
+        normalized_name = _normalize_taxonomy_name(category_name)
+        cached_id = self._product_category_ids.get(normalized_name)
+        if cached_id:
+            return cached_id
+
+        categories_url = f"{self.base_url}/products/categories"
+        existing = await client.get(
+            categories_url,
+            params={
+                **self.auth_params,
+                "search": category_name,
+                "per_page": 100,
+            },
+        )
+        existing.raise_for_status()
+        for category in existing.json():
+            if _normalize_taxonomy_name(category.get("name", "")) == normalized_name:
+                category_id = category.get("id")
+                if category_id:
+                    self._product_category_ids[normalized_name] = category_id
+                    return category_id
+
+        created = await client.post(
+            categories_url,
+            params=self.auth_params,
+            json={"name": category_name},
+        )
+        if created.is_error:
+            # Another sync worker may have created the same category after our lookup.
+            retry = await client.get(
+                categories_url,
+                params={
+                    **self.auth_params,
+                    "search": category_name,
+                    "per_page": 100,
+                },
+            )
+            retry.raise_for_status()
+            for category in retry.json():
+                if _normalize_taxonomy_name(category.get("name", "")) == normalized_name:
+                    category_id = category.get("id")
+                    if category_id:
+                        self._product_category_ids[normalized_name] = category_id
+                        return category_id
+            created.raise_for_status()
+
+        category_id = created.json().get("id")
+        if not category_id:
+            raise RuntimeError(f"WooCommerce no devolvió ID para categoría: {category_name}")
+        self._product_category_ids[normalized_name] = category_id
+        return category_id
 
     async def list_brands(self, search: str | None = None) -> list[dict[str, Any]]:
         params = {**self.auth_params, "per_page": 100}
@@ -293,6 +360,27 @@ def _extract_brand(product: dict[str, Any]) -> str | None:
         name = raw_brand.get("display_name") or raw_brand.get("name")
         return str(name) if name else None
     return str(raw_brand)
+
+
+def _extract_product_category(product: dict[str, Any]) -> str | None:
+    raw_category = product.get("categ_id")
+    if not raw_category:
+        return None
+    if isinstance(raw_category, list) and len(raw_category) >= 2:
+        return str(raw_category[1]).strip() or None
+    if isinstance(raw_category, dict):
+        name = raw_category.get("display_name") or raw_category.get("name")
+        return str(name).strip() if name else None
+    return str(raw_category).strip() or None
+
+
+def _normalize_taxonomy_name(name: str) -> str:
+    decomposed = unicodedata.normalize("NFKD", name)
+    return " ".join(
+        "".join(char for char in decomposed if not unicodedata.combining(char))
+        .casefold()
+        .split()
+    )
 
 
 def _is_order_synced(order: dict[str, Any]) -> bool:
